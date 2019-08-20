@@ -28,6 +28,7 @@ class Controller:
         # Input
         # for testing, create /muliet/testdata/in
     def loadWikiXml(self):
+        self.log.info('Welcome!')
         parentDir = os.path.dirname((os.path.dirname(__file__)))
         dataPath = os.path.join(parentDir, 'test-data/in/')
         files = [f for f in listdir(dataPath) if isfile(join(dataPath, f))]
@@ -40,7 +41,6 @@ class Controller:
             else:
                 currentFile.append(path)
                 self.log.debug('%s found', path)
-                # print(path + ' ' +'found')
         self.log.info('Input: %s files found.', len(currentFile))
         return currentFile
 
@@ -58,63 +58,48 @@ class Controller:
         self.parser.setContentHandler(self.handler)
         # Disable external entities / dtd requests
         self.parser.setFeature(xml.sax.handler.feature_external_ges, 0)
-        self.log.info('Searching for words...')
+        self.log.debug('Handler initialized.')
         return
 
     def startHandler(self, limit):
         count = 0
-        # print(self.path)
+        self.log.info('Starting Xml parsing...')        
+        
+        # start passing lines to xml handler
         for line in subprocess.Popen(['bzcat'],
                                  stdin = open(self.path),
                                  stdout = subprocess.PIPE).stdout:
+            # stop when n=limit WikiItems have been found
             if count >= limit:
+                self.log.info('Finished Xml parsing.')
                 break
             try:
                 self.parser.feed(line)
             except StopIteration:
+                self.log.info('Finished Xml parsing.')
                 break
 
             if self.handler._WikiItem:
-
                 count += 1
-                print(self.handler._WikiItem)
+                
+                # postprocessing of WikiItem
+                # ...
+                self.log.debug(self.handler._WikiItem)
+
+                # destroy _WikiItem
                 self.handler._WikiItem = None
+    def processItem(self, witem):
+        pass
 
-            # Stop when N Words have been found
-            # if limit is not None and len(self.handler._WikiItems) >= limit:
-
-
-
-                # for item in self.handler._WikiItem:
-
-                #     # item.lang_dispatch()
-                #     # item.find_stuff()
-
-                #     self.log.debug('%s', item)
-                #     # log.debug('%s', item.word['lang'])
-                #     # log.debug('%s', item.word['title'])
-                #     # log.debug('%s', item.word['phonetic'])
-                #     # log.debug('%s', item.word['division'])
-                #     # log.debug('%s', item.word['meaning'])
-                #     # log.debug('%s', item.word['etymology'])
-                #     # log.debug('%s', item.word['transl'])
-                #     # log.debug('%s', item.word['refs'])
-
-                # else:
-                #     self.log.info('done!')
-                # self.log.info(
-                #     'Found %s words in %s pages', 
-                #     len(self.handler._WikiItems), 
-                #     self.handler._pageCount)
-
-                # return self.handler._WikiItems
+    def writeOut(self):
+        pass
 
 
 
 def main():
 
     c = Controller()
-    c.initializeHandler(c.wikiData[0])
+    c.initializeHandler(c.wikiData[1])
     c.startHandler(limit=2)
 
 main()

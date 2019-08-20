@@ -37,25 +37,24 @@ class WikiXmlHandler(xml.sax.handler.ContentHandler):
             self._pageCount += 1
             self._pages.append((self._values['title'], self._values['text']))
 
-            ap = ArticleProcessor()
-            word = ap.processArticle(
+            prp = PreProcessor()
+            word = prp.processArticle(
                                     self._values['title'], 
                                     self._values['text'], 
-                                    template = ap.getTemplatebyLanguage(self._lang)
+                                    template = prp.getTemplatebyLanguage(self._lang)
                                     )
             if word:
                 # Check for internal pages (eg. Mediawiki:Helppage)
                 if not ':' in word['title']:
                     wf = WikiItemFactory()
                     self._WikiItem = (wf.returnWikiItem(
-                                                            self._lang,
-                                                            word['title'],
-                                                            word['text'],
-                                                            word['wikicode']
-                                                            )
-                                            ) 
+                                                        self._lang,
+                                                        word['title'],
+                                                        word['text'],
+                                                        word['wikicode']
+                                                        )) 
 
-class ArticleProcessor:
+class PreProcessor:
 
     def __init__(self):
         self.wikicode = None
