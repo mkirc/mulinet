@@ -15,6 +15,7 @@ class WikiXmlHandler(xml.sax.handler.ContentHandler):
         self._pageCount = 0
         self._WikiItem = None
         self._lang = langStr
+        self.wf = WikiItemFactory()
 
 
     def characters(self, content):
@@ -43,16 +44,16 @@ class WikiXmlHandler(xml.sax.handler.ContentHandler):
                                     self._values['text'], 
                                     template = prp.getTemplatebyLanguage(self._lang)
                                     )
+
             if word:
                 # Check for internal pages (eg. Mediawiki:Helppage)
                 if not ':' in word['title']:
-                    wf = WikiItemFactory()
-                    self._WikiItem = (wf.returnWikiItem(
-                                                        self._lang,
-                                                        word['title'],
-                                                        word['text'],
-                                                        word['wikicode']
-                                                        )) 
+                    self._WikiItem = (self.wf.returnWikiItem(
+                                                            self._lang,
+                                                            word['title'],
+                                                            word['text'],
+                                                            word['wikicode']
+                                                            )) 
 
 class PreProcessor:
 
@@ -64,16 +65,16 @@ class PreProcessor:
     # Process a wikipedia article looking for template
         
         # Create a parsing object
-        wikicode = mwparserfromhell.parse(text)
+        self.wikicode = mwparserfromhell.parse(text)
         
         # Search through templates for the template
-        matches = wikicode.filter_templates(matches = template)
+        self.matches = self.wikicode.filter_templates(matches = template)
         
-        if len(matches) >= 1:
+        if len(self.matches) >= 1:
 
             return {'title' : title,
                     'text' : text, 
-                    'wikicode' : wikicode}
+                    'wikicode' : self.wikicode}
 
     def getTemplatebyLanguage(self, lang):
 

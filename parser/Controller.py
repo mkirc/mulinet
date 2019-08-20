@@ -6,7 +6,7 @@ import logging
 from os import listdir
 from os.path import isfile, join
 from classes import WikiXmlHandler
-from classes.WikicodeProcessor import PostProcessor
+from classes.WikicodeProcessor import ProcessorFactory
 from classes.WikiItem import WikiItem
 
 class Controller:
@@ -30,7 +30,7 @@ class Controller:
         # Input
         # for testing, create /muliet/testdata/in
     def loadWikiXml(self):
-        self.log.info('Welcome!')
+        self.log.info('Hello again!')
         parentDir = os.path.dirname((os.path.dirname(__file__)))
         dataPath = os.path.join(parentDir, 'test-data/in/')
         files = [f for f in listdir(dataPath) if isfile(join(dataPath, f))]
@@ -43,7 +43,7 @@ class Controller:
             else:
                 currentFile.append(path)
                 self.log.debug('%s found', path)
-        self.log.info('Input: %s files found.', len(currentFile))
+        self.log.debug('Input: %s files found.', len(currentFile))
         return currentFile
 
     def initializeHandler(self, path):
@@ -60,12 +60,19 @@ class Controller:
         self.parser.setContentHandler(self.handler)
         # Disable external entities / dtd requests
         self.parser.setFeature(xml.sax.handler.feature_external_ges, 0)
-        self.log.debug('Handler initialized.')
+        self.log.debug('WikiXmlHandler initialized.')
+        return
+
+    def initializeProcessorFactory(self):
+
+        self.pf = ProcessorFactory()
+        self.pf.compileRegexbyLanguage(self.langStr)
+        self.log.debug('ProcessorFactory initialized.')
         return
 
     def startHandler(self, limit):
         count = 0
-        self.log.info('Starting Xml parsing...')        
+        self.log.info('Starting Xml parsing.')        
         
         # start passing lines to xml handler
         for line in subprocess.Popen(['bzcat'],
@@ -83,7 +90,7 @@ class Controller:
 
             if self.handler._WikiItem:
                 count += 1
-                
+
                 # postprocessing of WikiItem
                 self.processItem(self.handler._WikiItem)
                 self.log.debug(self.handler._WikiItem)
@@ -93,11 +100,19 @@ class Controller:
 
     def processItem(self, witem):
         
-        pp = PostProcessor()
-        pp.loadItem(witem)
+        # initialize PostProcessor
+        self.pf.spawnProcessor()
+        self.pf.loadWikiItem(witem)
+        pp = self.pf.returnProcessor()
+        
+        # actual Processing
         pp.findIPA()
         if pp.out:
-            self.log.debug(pp.wItem.field['phonetic'])
+            self.log.debug(pp.witem.field['phonetic'])
+        
+        # cleanup
+        pp = None
+        self.pf.destroyProcessor()
         return
 
 
@@ -110,6 +125,7 @@ def main():
 
     c = Controller()
     c.initializeHandler(c.wikiData[1])
+    c.initializeProcessorFactory()
     c.startHandler(limit=2)
 
 main()
