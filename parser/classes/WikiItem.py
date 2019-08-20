@@ -1,9 +1,8 @@
 import re
 import mwparserfromhell
-# from classes.Helper import stringify
 
 class WikiItem:
-# Object for storing pages
+# Object for storing pages / fields
 	def __init__(self, lang, ti, text, wikicode):
 
 		self.wikicode = wikicode
@@ -25,7 +24,7 @@ class WikiItem:
 		return self.field['title']
 
 class WikiItemFactory:
-	# Object for generating Words Objects
+	# Object for generating WikiItems
 	def __init__(self):
 		pass
 

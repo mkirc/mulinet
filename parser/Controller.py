@@ -6,7 +6,8 @@ import logging
 from os import listdir
 from os.path import isfile, join
 from classes import WikiXmlHandler
-# from classes.Helper import prettify
+from classes.WikicodeProcessor import PostProcessor
+from classes.WikiItem import WikiItem
 
 class Controller:
 
@@ -19,6 +20,7 @@ class Controller:
             format='%(levelname)s - %(message)s')
 
         self.log = logging.getLogger('mulietLogger')
+
         self.wikiData = self.loadWikiXml()
         self.langStr = None
         self.handler = None
@@ -83,13 +85,21 @@ class Controller:
                 count += 1
                 
                 # postprocessing of WikiItem
-                # ...
+                self.processItem(self.handler._WikiItem)
                 self.log.debug(self.handler._WikiItem)
 
                 # destroy _WikiItem
                 self.handler._WikiItem = None
+
     def processItem(self, witem):
-        pass
+        
+        pp = PostProcessor()
+        pp.loadItem(witem)
+        pp.findIPA()
+        if pp.out:
+            self.log.debug(pp.wItem.field['phonetic'])
+        return
+
 
     def writeOut(self):
         pass

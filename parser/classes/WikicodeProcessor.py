@@ -1,11 +1,40 @@
-from WikiItem import WikiItem
+import re
+# from WikiItem import WikiItem
 
 class PostProcessor:
-	def __init__(self, witem):
+	def __init__(self):
 
+		self.wItem = None
+		self.out = None
+		self.raw = None
+		self.wcode = None
+		self.cont = None
+		self.body = None
+
+	def loadItem(self, witem):
+		
 		self.wItem = witem
-		self.raw = witem.text
-		self.wcode = witem.wikicode
+		self.out = self.wItem.field
+		self.raw = self.wItem.text
+		self.wcode = self.wItem.wikicode
+		self.cont = self.wcode.filter_text()
+		self.body = re.sub('<.*?>', '', self.raw.replace("\n", ''))
+
+	def findIPA(self):
+
+		if 'IPA' in self.body:
+			try:
+				self.out['phonetic'] = self.wcode.filter_templates(matches='IPA')[0].params[0]			
+			except IndexError:
+				pass
+		return
+
+		
+
+
+
+
+
 
 	# def find_en_stuff(self):
 
