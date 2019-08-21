@@ -13,7 +13,7 @@ class WikiItem:
                     'title'     :   ti,
                     'phonetic'  :   None,
                     'division'  :   None,
-                    'meaning'   :   [],
+                    'meaning'   :   {},
                     'etymology' :   [],
                     'transl'    :   [],
                     'refs'      :   None

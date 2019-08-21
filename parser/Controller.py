@@ -71,15 +71,17 @@ class Controller:
         return
 
     def startHandler(self, limit):
-        count = 0
+        pcount = 0
+        # lcount = 0
         self.log.info('Starting Xml parsing.')        
         
         # start passing lines to xml handler
         for line in subprocess.Popen(['bzcat'],
                                  stdin = open(self.path),
                                  stdout = subprocess.PIPE).stdout:
+            # lcount += 1
             # stop when n=limit WikiItems have been found
-            if count >= limit:
+            if pcount >= limit:
                 self.log.info('Finished Xml parsing.')
                 break
             try:
@@ -89,11 +91,12 @@ class Controller:
                 break
 
             if self.handler._WikiItem:
-                count += 1
+                pcount += 1
+                # print(str(lcount))
 
                 # postprocessing of WikiItem
-                self.processItem(self.handler._WikiItem)
                 self.log.debug(self.handler._WikiItem)
+                self.processItem(self.handler._WikiItem)
 
                 # destroy _WikiItem
                 self.handler._WikiItem = None
@@ -108,11 +111,20 @@ class Controller:
         # actual Processing
         pp.findIPA()
         pp.findEtymology()
+        pp.findMeaning()
 
         # display findings
         if pp.out:
+            # self.log.debug(pp.witem.text)
             self.log.debug(pp.witem.field['phonetic'])
-            self.log.debug(pp.witem.field['etymology'])            
+            self.log.debug(pp.witem.field['etymology'])
+            self.log.debug(pp.witem.field['meaning'])
+
+            # if str(pp.witem) == 'cat':
+            #     self.log.debug(pp.witem.text)
+            # else:
+            #     pass
+            
         
         # cleanup
         pp = None
@@ -130,7 +142,7 @@ def main():
     c = Controller()
     c.initializeHandler(c.wikiData[1])
     c.initializeProcessorFactory()
-    c.startHandler(limit=2)
+    c.startHandler(limit=1)
 
 main()
 

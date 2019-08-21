@@ -33,10 +33,12 @@ class PostProcessor:
         if 'Etymology' in self.body:
             try:
                 for e in re.findall(self.regex['et'], self.body):
+                    # filter two-or-more whitespaces
+                    x = re.sub('\s{2,}','', e)
+                    # filter hacked newline ;;
+                    x = re.sub(';;', '', e)
                     # filter unicode characters, leading whitespace
-                    x = e.encode('ascii', 'ignore').decode().strip()
-                    # filter two-or-more whitespace
-                    x = re.sub('\s{2,}','', x)
+                    x = x.encode('ascii', 'ignore').decode().strip()
                     if x:
                         self.out['etymology'].append(x)
                     
@@ -49,7 +51,35 @@ class PostProcessor:
 
 
         # this sounds too philosphical
-        pass
+       
+        try:
+            nouns = []
+            verbs = []
+            me = {}
+            # iterate over each match
+            for r in re.findall(self.regex['me'], self.body):
+                if r[0] == 'Noun':
+                    nouns.append(r[1])
+                if r[0] == 'Verb':
+                    verbs.append(r[1])
+                # print(me)
+            me['Nouns'] = ''.join(nouns)
+            me['Verbs'] = ''.join(verbs)
+
+            for k, v in me.items():
+                current = []
+                # iterate over each number(denoted by #)
+                for m in re.findall(self.regex['it'], me[k]):
+                    # filter chars enclosed by {}
+                    m = re.sub('{{.*?}}', '' , m)
+                    # filter unicode characters, leading whitespace
+                    m = m.encode('ascii', 'ignore').decode().strip()
+
+                    if m:
+                        current.append(m)
+                self.out['meaning'][k] = current
+        except IndexError:
+            pass
     #   try:
     #       # self.word['meaning'] = '\n'.join(re.findall(_it, ''.join(re.findall(me, body))))
     #       for r in re.findall(_it, ''.join(re.findall(me, body))):
@@ -77,8 +107,9 @@ class ProcessorFactory:
         if self.langStr == 'en':
 
             self.regex['et'] = re.compile('===Etymology [0-9+]===\s(.+?)(?=={3,})')
-            self.regex['me'] = re.compile('====Noun====\s(.+?)(?=={3,})')
-            self.regex['it'] = re.compile('#[\*:\s](.+?)(?=#)')
+            self.regex['me'] = re.compile('=={2,}(Noun|Verb)=={2,}\s(.+?)(?=={2,})')
+            # self.regex['it'] = re.compile('#[\*:\s](.+?)(?=#)')
+            self.regex['it'] = re.compile('#{1,2}\s(.+?)(?=;;)')
 
         elif self.langStr == 'de':
 
@@ -101,7 +132,7 @@ class ProcessorFactory:
         self.pp.raw = self.pp.witem.text
         self.pp.wcode = self.pp.witem.wikicode
         self.pp.cont = self.pp.wcode.filter_text()
-        self.pp.body = re.sub('<.*?>', '', self.pp.raw.replace("\n", ''))
+        self.pp.body = re.sub('<.*?>', '', self.pp.raw.replace("\n", ';;'))
         return
 
     def returnProcessor(self):
