@@ -14,13 +14,13 @@ class PostProcessor:
 
     def findIPA(self):
 
-        if 'IPA' in self.body:
+        if 'IPA' in self.raw:
             try:
                 self.out['phonetic'] = self.wcode.filter_templates(matches='IPA')[0].params[0]          
             except IndexError:
                 pass
 
-        elif 'Lautschrift' in self.body:
+        elif 'Lautschrift' in self.raw:
             try:
                 self.out['phonetic'] = self.wcode.filter_templates(matches='Lautschrift')[0].params[0]          
             except IndexError:
@@ -30,9 +30,9 @@ class PostProcessor:
 
     def findEtymology(self):
 
-        if 'Etymology' in self.body:
+        if 'Etymology' in self.raw:
             try:
-                for e in re.findall(self.regex['et'], self.body):
+                for e in re.findall(self.regex['et'], self.raw):
                     # filter two-or-more whitespaces
                     x = re.sub('\s{2,}','', e)
                     # filter hacked newline ;;
@@ -57,7 +57,7 @@ class PostProcessor:
             verbs = []
             me = {}
             # iterate over each match
-            for r in re.findall(self.regex['me'], self.body):
+            for r in re.findall(self.regex['me'], self.raw):
                 if r[0] == 'Noun':
                     nouns.append(r[1])
                 if r[0] == 'Verb':
@@ -69,28 +69,20 @@ class PostProcessor:
             for k, v in me.items():
                 current = []
                 # iterate over each number(denoted by #)
-                for m in re.findall(self.regex['it'], me[k]):
+                for m in re.findall(self.regex['meIt'], me[k]):
                     # filter chars enclosed by {}
                     m = re.sub('{{.*?}}', '' , m)
+                    # filter html
+                    m = re.sub('<.*>','', m)
                     # filter unicode characters, leading whitespace
                     m = m.encode('ascii', 'ignore').decode().strip()
-
                     if m:
                         current.append(m)
                 self.out['meaning'][k] = current
         except IndexError:
             pass
-    #   try:
-    #       # self.word['meaning'] = '\n'.join(re.findall(_it, ''.join(re.findall(me, body))))
-    #       for r in re.findall(_it, ''.join(re.findall(me, body))):
-    #           self.word['meaning'].append(r)
-    #       # self.word['meaning'] = '\n'.join(re.findall(_it, re.findall(me, body)[0]))
-    #       # self.word['meaning' = re.sub('{{.*?}}', '' ,self.word['meaning'].strip())
-    #       # print(self.word['meaning'])
-    #   except IndexError:
-    #       pass
-    #   for m in self.word['meaning']:
-    #       m = re.sub('{{.*?}}', '' ,m.strip())
+        return
+
 
 class ProcessorFactory:
 
@@ -106,10 +98,12 @@ class ProcessorFactory:
 
         if self.langStr == 'en':
 
-            self.regex['et'] = re.compile('===Etymology [0-9+]===\s(.+?)(?=={3,})')
-            self.regex['me'] = re.compile('=={2,}(Noun|Verb)=={2,}\s(.+?)(?=={2,})')
+            self.regex['et'] = re.compile('=={2,}Etymology [0-9+]=={2,}(.+?)(?=={2,})', re.DOTALL)
+            self.regex['me'] = re.compile('=={2,}(Noun|Verb)=={2,}(.+?)(?=={2,})', re.DOTALL)
+            self.regex['tr'] = re.compile('=={2,}Translations=={2,}(.+?)(?=={2,})', re.DOTALL)
             # self.regex['it'] = re.compile('#[\*:\s](.+?)(?=#)')
-            self.regex['it'] = re.compile('#{1,2}\s(.+?)(?=;;)')
+            self.regex['meIt'] = re.compile('#{1,2}\s(.+?)(?=\n)')
+            self.regex['trIt'] = re.compile('\*{1,2}\s(.+?)(?=\n)')            
 
         elif self.langStr == 'de':
 
@@ -132,7 +126,8 @@ class ProcessorFactory:
         self.pp.raw = self.pp.witem.text
         self.pp.wcode = self.pp.witem.wikicode
         self.pp.cont = self.pp.wcode.filter_text()
-        self.pp.body = re.sub('<.*?>', '', self.pp.raw.replace("\n", ';;'))
+        # self.pp.body = re.sub('<.*?>', '', self.pp.raw.replace("\n", ';;'))
+        # self.pp.body = re.sub('<.*?>', '', self.pp.raw)
         return
 
     def returnProcessor(self):
