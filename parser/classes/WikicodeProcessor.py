@@ -9,7 +9,6 @@ class PostProcessor:
         self.raw = None
         self.wcode = None
         self.cont = None
-        self.body = None
         self.regex = regex
 
     def findIPA(self):
@@ -33,15 +32,15 @@ class PostProcessor:
         if 'Etymology' in self.raw:
             try:
                 for e in re.findall(self.regex['et'], self.raw):
-                    # filter two-or-more whitespaces
-                    x = re.sub('\s{2,}','', e)
-                    # filter hacked newline ;;
-                    x = re.sub(';;', '', e)
-                    # filter unicode characters, leading whitespace
-                    x = x.encode('ascii', 'ignore').decode().strip()
-                    if x:
-                        self.out['etymology'].append(x)
-                    
+                    for f in re.findall(self.regex['nlIt'], e):
+                        # filter two-or-more whitespaces
+                        x = re.sub('\s{2,}','', f)
+                        # filter unicode characters, leading whitespace
+                        x = x.encode('ascii', 'ignore').decode().strip()
+                        # filter html
+                        x = re.sub('<.*>','', x)
+                        if x:
+                            self.out['etymology'].append(x)
                 # self.out['etymology'] = '\n'.join(re.findall(self.regex['et'], self.body))
             except IndexError:
                 pass
@@ -49,14 +48,13 @@ class PostProcessor:
 
     def findMeaning(self):
 
-
         # this sounds too philosphical
        
         try:
             nouns = []
             verbs = []
             me = {}
-            # iterate over each match
+            # iterate over each match/conditional
             for r in re.findall(self.regex['me'], self.raw):
                 if r[0] == 'Noun':
                     nouns.append(r[1])
@@ -83,14 +81,22 @@ class PostProcessor:
             pass
         return
 
+    def findTranslations(self):
+
+        if 'Translations' in self.raw:
+
+            for tr in re.findall(self.regex['tr'], self.raw):
+                for line in re.findall(self.regex['trIt'], tr):
+                    self.out['transl'].append(line)
+
 
 class ProcessorFactory:
 
     def __init__(self):
 
         self.langStr = None
-        self.regex = {}
         self.pp = None
+        self.regex = {}
 
     def compileRegexbyLanguage(self, langStr):
         
@@ -98,10 +104,12 @@ class ProcessorFactory:
 
         if self.langStr == 'en':
 
+            # passages
             self.regex['et'] = re.compile('=={2,}Etymology [0-9+]=={2,}(.+?)(?=={2,})', re.DOTALL)
             self.regex['me'] = re.compile('=={2,}(Noun|Verb)=={2,}(.+?)(?=={2,})', re.DOTALL)
             self.regex['tr'] = re.compile('=={2,}Translations=={2,}(.+?)(?=={2,})', re.DOTALL)
-            # self.regex['it'] = re.compile('#[\*:\s](.+?)(?=#)')
+            # iterators
+            self.regex['nlIt'] = re.compile('(.+?)(?=\n)')
             self.regex['meIt'] = re.compile('#{1,2}\s(.+?)(?=\n)')
             self.regex['trIt'] = re.compile('\*{1,2}\s(.+?)(?=\n)')            
 
@@ -125,7 +133,7 @@ class ProcessorFactory:
         self.pp.out = self.pp.witem.field
         self.pp.raw = self.pp.witem.text
         self.pp.wcode = self.pp.witem.wikicode
-        self.pp.cont = self.pp.wcode.filter_text()
+        # self.pp.cont = self.pp.wcode.filter_text()
         # self.pp.body = re.sub('<.*?>', '', self.pp.raw.replace("\n", ';;'))
         # self.pp.body = re.sub('<.*?>', '', self.pp.raw)
         return

@@ -112,13 +112,15 @@ class Controller:
         pp.findIPA()
         pp.findEtymology()
         pp.findMeaning()
+        pp.findTranslations()
 
         # display findings
         if pp.out:
-            # self.log.debug(pp.witem.text)
-            self.log.debug(pp.witem.field['phonetic'])
-            self.log.debug(pp.witem.field['etymology'])
-            self.log.debug(pp.witem.field['meaning'])
+
+            # self.log.debug(pp.witem.field['phonetic'])
+            # self.log.debug(pp.witem.field['etymology'])
+            # self.log.debug(pp.witem.field['meaning'])
+            self.log.debug(pp.witem.field['transl'])
 
             # if str(pp.witem) == 'cat':
             #     self.log.debug(pp.witem.text)
