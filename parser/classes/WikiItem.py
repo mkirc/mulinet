@@ -14,7 +14,7 @@ class WikiItem:
                     'phonetic'  :   None,
                     'division'  :   None,
                     'meaning'   :   [],
-                    'etymology' :   None,
+                    'etymology' :   [],
                     'transl'    :   [],
                     'refs'      :   None
 

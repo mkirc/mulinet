@@ -107,8 +107,12 @@ class Controller:
         
         # actual Processing
         pp.findIPA()
+        pp.findEtymology()
+
+        # display findings
         if pp.out:
             self.log.debug(pp.witem.field['phonetic'])
+            self.log.debug(pp.witem.field['etymology'])            
         
         # cleanup
         pp = None

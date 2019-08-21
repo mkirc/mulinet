@@ -10,7 +10,7 @@ class PostProcessor:
         self.wcode = None
         self.cont = None
         self.body = None
-        self.regex = {}
+        self.regex = regex
 
     def findIPA(self):
 
@@ -27,6 +27,40 @@ class PostProcessor:
                 pass
 
         return
+
+    def findEtymology(self):
+
+        if 'Etymology' in self.body:
+            try:
+                for e in re.findall(self.regex['et'], self.body):
+                    # filter unicode characters, leading whitespace
+                    x = e.encode('ascii', 'ignore').decode().strip()
+                    # filter two-or-more whitespace
+                    x = re.sub('\s{2,}','', x)
+                    if x:
+                        self.out['etymology'].append(x)
+                    
+                # self.out['etymology'] = '\n'.join(re.findall(self.regex['et'], self.body))
+            except IndexError:
+                pass
+        return
+
+    def findMeaning(self):
+
+
+        # this sounds too philosphical
+        pass
+    #   try:
+    #       # self.word['meaning'] = '\n'.join(re.findall(_it, ''.join(re.findall(me, body))))
+    #       for r in re.findall(_it, ''.join(re.findall(me, body))):
+    #           self.word['meaning'].append(r)
+    #       # self.word['meaning'] = '\n'.join(re.findall(_it, re.findall(me, body)[0]))
+    #       # self.word['meaning' = re.sub('{{.*?}}', '' ,self.word['meaning'].strip())
+    #       # print(self.word['meaning'])
+    #   except IndexError:
+    #       pass
+    #   for m in self.word['meaning']:
+    #       m = re.sub('{{.*?}}', '' ,m.strip())
 
 class ProcessorFactory:
 
