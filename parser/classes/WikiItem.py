@@ -1,5 +1,5 @@
 import re
-import mwparserfromhell
+# import mwparserfromhell
 
 class WikiItem:
 # Object for storing pages / fields
@@ -23,10 +23,10 @@ class WikiItem:
         
         return self.field['title']
 
-class WikiItemFactory:
-    # Object for generating WikiItems
-    def __init__(self):
-        pass
+# class WikiItemFactory:
+#     # Object for generating WikiItems
+#     def __init__(self):
+#         pass
 
-    def returnWikiItem(self, lang, ti, text, wikicode):
-        return WikiItem(lang, ti, text, wikicode)
+#     def returnWikiItem(self, lang, ti, text, wikicode):
+#         return WikiItem(lang, ti, text, wikicode)

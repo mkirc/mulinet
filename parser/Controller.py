@@ -16,7 +16,7 @@ class Controller:
         # Logging 
         logging.basicConfig(
             # DEBUG INFO
-            level=logging.DEBUG,
+            level=logging.INFO,
             format='%(levelname)s - %(message)s')
 
         self.log = logging.getLogger('mulietLogger')
@@ -46,9 +46,9 @@ class Controller:
         self.log.debug('Input: %s files found.', len(currentFile))
         return currentFile
 
-    def initializeHandler(self, path):
+    def initializeHandler(self, inpath):
 
-        self.path = path
+        self.path = inpath
         self.langStr = str(self.path.split('/')[-1].split('-')[0][:2])
         self.log.debug('Input: lang = %s', self.langStr)
 
@@ -60,27 +60,25 @@ class Controller:
         self.parser.setContentHandler(self.handler)
         # Disable external entities / dtd requests
         self.parser.setFeature(xml.sax.handler.feature_external_ges, 0)
-        self.log.debug('WikiXmlHandler initialized.')
+        self.log.info('WikiXmlHandler initialized.')
         return
 
     def initializeProcessorFactory(self):
 
         self.pf = ProcessorFactory()
         self.pf.compileRegexbyLanguage(self.langStr)
-        self.log.debug('ProcessorFactory initialized.')
+        self.log.info('ProcessorFactory initialized.')
         return
 
-    def startHandler(self, limit):
+    def startFeed(self, limit):
         pcount = 0
-        # lcount = 0
         self.log.info('Starting Xml parsing.')        
         
         # start passing lines to xml handler
         for line in subprocess.Popen(['bzcat'],
                                  stdin = open(self.path),
                                  stdout = subprocess.PIPE).stdout:
-            # lcount += 1
-            # stop when n=limit WikiItems have been found
+
             if pcount >= limit:
                 self.log.info('Finished Xml parsing.')
                 break
@@ -95,7 +93,7 @@ class Controller:
                 # print(str(lcount))
 
                 # postprocessing of WikiItem
-                self.log.debug(self.handler._WikiItem)
+                self.log.info(self.handler._WikiItem)
                 self.processItem(self.handler._WikiItem)
 
                 # destroy _WikiItem
@@ -115,7 +113,7 @@ class Controller:
         pp.findTranslations()
 
         # display findings
-        if pp.out:
+        if pp.witem:
 
             # self.log.debug(pp.witem.field['phonetic'])
             # self.log.debug(pp.witem.field['etymology'])
@@ -142,9 +140,9 @@ class Controller:
 def main():
 
     c = Controller()
-    c.initializeHandler(c.wikiData[1])
+    c.initializeHandler(c.wikiData[3])
     c.initializeProcessorFactory()
-    c.startHandler(limit=1)
+    c.startFeed(limit=100)
 
 main()
 

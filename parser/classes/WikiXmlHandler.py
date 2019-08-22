@@ -1,6 +1,6 @@
 import xml.sax
 import mwparserfromhell
-from classes.WikiItem import WikiItem, WikiItemFactory
+from classes.WikiItem import WikiItem #, WikiItemFactory
 
 
 
@@ -13,9 +13,8 @@ class WikiXmlHandler(xml.sax.handler.ContentHandler):
         self._current_tag = None
         self._pages = []
         self._pageCount = 0
-        self._WikiItem = None
         self._lang = langStr
-        self.wf = WikiItemFactory()
+        self._WikiItem = None
 
 
     def characters(self, content):
@@ -48,12 +47,12 @@ class WikiXmlHandler(xml.sax.handler.ContentHandler):
             if word:
                 # Check for internal pages (eg. Mediawiki:Helppage)
                 if not ':' in word['title']:
-                    self._WikiItem = (self.wf.returnWikiItem(
-                                                            self._lang,
-                                                            word['title'],
-                                                            word['text'],
-                                                            word['wikicode']
-                                                            )) 
+                    self._WikiItem = WikiItem(
+                                            self._lang,
+                                            word['title'],
+                                            word['text'],
+                                            word['wikicode']
+                                            )
 
 class PreProcessor:
 
