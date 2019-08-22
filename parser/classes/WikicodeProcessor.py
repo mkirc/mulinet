@@ -158,7 +158,8 @@ class DePostProcessor(PostProcessor):
         if self.witem.field['refs'] is None:
             if 'Referenzen' in self.body:
                 try:
-                    self.witem.field['refs'] = cont[cont.index('Referenzen') + 1:cont.index('Quellen')]
+                    ref = self.cont[self.cont.index('Referenzen') + 1:self.cont.index('Quellen')]
+                    self.witem.field['refs'] = ref
                 except ValueError:
                     pass
         return

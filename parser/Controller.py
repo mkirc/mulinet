@@ -50,7 +50,7 @@ class Controller:
 
         self.path = inpath
         self.langStr = str(self.path.split('/')[-1].split('-')[0][:2])
-        self.log.debug('Input: lang = %s', self.langStr)
+        self.log.info('Input: lang = %s', self.langStr)
 
         # Object for handling xml
         self.handler = WikiXmlHandler.WikiXmlHandler(self.langStr)
@@ -71,7 +71,7 @@ class Controller:
         return
 
     def startFeed(self, limit):
-        pcount = 0
+        count = 0
         self.log.info('Starting Xml parsing.')        
         
         # start passing lines to xml handler
@@ -79,7 +79,7 @@ class Controller:
                                  stdin = open(self.path),
                                  stdout = subprocess.PIPE).stdout:
 
-            if pcount >= limit:
+            if count >= limit:
                 self.log.info('Finished Xml parsing.')
                 break
             try:
@@ -89,15 +89,19 @@ class Controller:
                 break
 
             if self.handler._WikiItem:
-                pcount += 1
+                count += 1
                 # print(str(lcount))
 
                 # postprocessing of WikiItem
-                self.log.info(self.handler._WikiItem)
+                self.log.debug(self.handler._WikiItem)
                 self.processItem(self.handler._WikiItem)
 
                 # destroy _WikiItem
                 self.handler._WikiItem = None
+        self.log.info(
+            'Found %s relevant Articles in %s pages', 
+            count, 
+            self.handler._pageCount)
 
     def processItem(self, witem):
         
@@ -140,7 +144,7 @@ class Controller:
 def main():
 
     c = Controller()
-    c.initializeHandler(c.wikiData[3])
+    c.initializeHandler(c.wikiData[1])
     c.initializeProcessorFactory()
     c.startFeed(limit=100)
 
