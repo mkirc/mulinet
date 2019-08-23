@@ -143,10 +143,8 @@ class DePostProcessor(PostProcessor):
         if 'Ü-Tabelle' in self.body:
             try:
                 ltr = str(self.wcode.filter_templates(matches='Ü-Tabelle')[0])
-                # print(ltr)
                 for t in re.findall(self.regex['tr'], ltr):
                     self.witem.field['transl'].append(t)
-                # self.witem.field['transl'] = ', '.join([i for i in re.findall(self.regex['tr'], ltr)])
             except ValueError:
                 pass
         return
