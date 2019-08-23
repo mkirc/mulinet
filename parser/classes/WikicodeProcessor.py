@@ -143,7 +143,10 @@ class DePostProcessor(PostProcessor):
         if 'Ü-Tabelle' in self.body:
             try:
                 ltr = str(self.wcode.filter_templates(matches='Ü-Tabelle')[0])
-                self.witem.field['transl'] = ', '.join([i for i in re.findall(self.regex['tr'], ltr)])
+                # print(ltr)
+                for t in re.findall(self.regex['tr'], ltr):
+                    self.witem.field['transl'].append(t)
+                # self.witem.field['transl'] = ', '.join([i for i in re.findall(self.regex['tr'], ltr)])
             except ValueError:
                 pass
         return
@@ -202,7 +205,8 @@ class ProcessorFactory:
             regex = {}
             regex['me'] = re.compile('{{Bedeutungen}}\s+(.+?)(?={{Herkunft}}|{{Synonyme}}|{{Beispiele}}|{{Entlehnungen}}|{{Abkürzungen}})')
             regex['et'] = re.compile('{{Herkunft}}\s+(.+?)(?={{Synonyme}}|{{Beispiele}})')
-            regex['tr']= re.compile('{{(.+?)(?=}})')
+            # regex['tr']= re.compile('{{(.+?)(?=}})')
+            regex['tr'] = re.compile('\*{1,2}(.+?)(?=\n)')
             regex['di'] = re.compile('{{Worttrennung}}\s+(.+?)(?={{Aussprache}}|{{Bedeutungen}})')
             regex['rf'] = re.compile('{{Referenzen}}\s+(.+?)(?={{Quellen}})')
             return regex        
