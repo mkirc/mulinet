@@ -106,7 +106,11 @@ class Controller:
 
                 # build simple xml for db storage
                 for item in ppitem:
-                    self.buildXml(item)
+                    outXml = self.buildXml(item, 'me', 'et', 'tr')
+                    # outXml = self.buildXml(item, 'total')
+                    for bloc in outXml:
+                        self.log.info(bloc)
+
 
                 # destroy _WikiItem
                 self.handler._WikiItem = None
@@ -117,23 +121,33 @@ class Controller:
             count, 
             self.handler._pageCount)
 
-    def buildXml(self, ppitem):
+    def buildXml(self, ppitem, *args):
 
-        if ppitem:
-            # build outXml
-            tree = self.xf.spawnBuilder()
-            tree.build(
-                ppitem.field['title'],
-                ppitem.field['phonetic'],
-                ppitem.field['meaning'],
-                ppitem.field['etymology'],
-                ppitem.field['transl']
-                )
-            # root = tree.returnRoot()
-            outStr = tree.returnOutstr()
-            print(outStr)
-            # self.log.info(prettifyXml(out))
-            tree.clearBody()
+        for m in args:
+            if ppitem:
+                tree = self.xf.spawnBuilder(m)
+                print(tree)
+                if m == 'total':
+                    tree.build(
+                        ppitem.field['title'],
+                        ppitem.field['phonetic'],
+                        ppitem.field['meaning'],
+                        ppitem.field['etymology'],
+                        ppitem.field['transl']
+                        )
+                else:
+                    ti = ppitem.field['title']
+                    ot = None
+                    if m == 'me':
+                        ot = ppitem.field['meaning']
+                    elif m == 'et':
+                        ot = ppitem.field['etymology']
+                    elif m == 'tr':
+                        ot = ppitem.field['transl']
+                    tree.build(ti, ot)
+                yield tree.returnOutstr()  
+                # print(outStr)
+                tree.clearBody()
         return
 
     def processItem(self, witem):
@@ -168,11 +182,8 @@ class Controller:
         self.pf.destroyProcessor()
         return
 
-
     def writeOut(self):
         pass
-
-
 
 def main():
 

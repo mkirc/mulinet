@@ -12,6 +12,29 @@ class XmlBuilder:
 		self.body = SubElement(self.root, 'body')
 		self.outStr = None
 
+	def prettifyXml(self, elem):
+
+	    # Return a pretty-printed XML string for the Element.
+	    rough_string = ET.tostring(elem, encoding='utf-8')
+	    reparsed = minidom.parseString(rough_string)
+
+	    return reparsed.toprettyxml(indent="  ")
+
+	def returnOutstr(self):
+
+		return self.prettifyXml(self.root)
+
+	def returnRoot(self):
+
+		return self.root
+
+	def clearBody(self):
+
+		self.body.clear()
+		return
+
+class TotalBuilder(XmlBuilder):
+
 	def build(self, ti, ph, me, et, tr):
 
 		self.word = SubElement(self.body, 'word')
@@ -51,28 +74,59 @@ class XmlBuilder:
 		except IndexError:
 			pass
 
+		return
+
+class MeBuilder(XmlBuilder):
+
+	def build(self, ti, me):
+		self.word = SubElement(self.body, 'word')
+		self.node = SubElement(self.word, 'title')
+		self.node.text = str(ti)
+
+		self.node = SubElement(self.word, 'meaning')
+
+		try:
+			for k,v in me.items():
+				nodeStr = 'me-' + str(k)
+				self.meNode = SubElement(self.node, nodeStr)
+				self.meNode.text = str(me[k])
+		except KeyError:
+			pass
 
 		return
 
-	def prettifyXml(self, elem):
+class EtBuilder(XmlBuilder):
 
-	    # Return a pretty-printed XML string for the Element.
-	    rough_string = ET.tostring(elem, encoding='unicode')
-	    reparsed = minidom.parseString(rough_string)
+	def build(self, ti, et):
+		self.word = SubElement(self.body, 'word')
+		self.node = SubElement(self.word, 'title')
+		self.node.text = str(ti)
+		self.node = SubElement(self.word, 'etymology')
+		
+		try:
+			for count,e in enumerate(et):
+				nodeStr = 'et-' + str(count + 1)
+				self.etNode = SubElement(self.node, nodeStr)
+				self.etNode.text = str(e)
+		except IndexError:
+			pass
+		return
 
-	    return reparsed.toprettyxml(indent="  ")
+class TrBuilder(XmlBuilder):
 
-	def returnOutstr(self):
+	def build(self, ti, tr):
+		self.word = SubElement(self.body, 'word')
+		self.node = SubElement(self.word, 'title')
+		self.node.text = str(ti)
+		self.node = SubElement(self.word, 'translation')
+		try:
+			for count,t in enumerate(tr):
+				nodeStr = 'tr-' + str(count)
+				self.trNode = SubElement(self.node, nodeStr)
+				self.trNode.text = str(t)
+		except IndexError:
+			pass
 
-		return self.prettifyXml(self.root)
-
-	def returnRoot(self):
-
-		return self.root
-
-	def clearBody(self):
-
-		self.body.clear()
 		return
 
 class XmlFactory:
@@ -80,8 +134,21 @@ class XmlFactory:
 	def __init__(self, langStr):
 
 		self.langStr = langStr
+		self.builder = None
 
-	def spawnBuilder(self):
+	def setBuilder(self, mod='total'):
 
-		return XmlBuilder(self.langStr)
+		if mod == 'total':
+			self.builder = TotalBuilder(self.langStr)
+		elif mod == 'me':
+			self.builder = MeBuilder(self.langStr)
+		elif mod == 'et':
+			self.builder = EtBuilder(self.langStr)
+		elif mod == 'tr':
+			self.builder = TrBuilder(self.langStr)
+		return
 
+	def spawnBuilder(self, mod):
+
+		self.setBuilder(mod)
+		return self.builder 
