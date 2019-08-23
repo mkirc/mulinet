@@ -45,7 +45,7 @@ class WikiXmlHandler(xml.sax.handler.ContentHandler):
                                     )
 
             if word:
-                # Check for internal pages (eg. Mediawiki:Helppage)
+                # discard Namespaced Pages (eg. Mediawiki:Helppage)
                 if not ':' in word['title']:
                     self._WikiItem = WikiItem(
                                             self._lang,
