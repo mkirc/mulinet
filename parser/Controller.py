@@ -8,6 +8,7 @@ from os.path import isfile, join
 from classes import WikiXmlHandler
 from classes.WikicodeProcessor import ProcessorFactory
 from classes.WikiItem import WikiItem
+from classes.XmlBuilder import XmlFactory
 
 class Controller:
 
@@ -27,9 +28,10 @@ class Controller:
         self.parser = None
         self.path = None
 
-        # Input
-        # for testing, create /muliet/testdata/in
+
     def loadWikiXml(self):
+
+        # for testing, create /muliet/test-data/in        
         self.log.info('Hello again!')
         parentDir = os.path.dirname((os.path.dirname(__file__)))
         dataPath = os.path.join(parentDir, 'test-data/in/')
@@ -70,7 +72,14 @@ class Controller:
         self.log.info('ProcessorFactory initialized.')
         return
 
+    def initializeXmlFactory(self):
+
+        self.xf = XmlFactory(self.langStr)
+        self.log.info('XmlFactory initialized.')
+        return
+
     def startFeed(self, limit):
+
         count = 0
         self.log.info('Starting Xml parsing.')        
         
@@ -90,18 +99,42 @@ class Controller:
 
             if self.handler._WikiItem:
                 count += 1
-                # print(str(lcount))
 
                 # postprocessing of WikiItem
                 self.log.debug(self.handler._WikiItem)
-                self.processItem(self.handler._WikiItem)
+                ppitem = self.processItem(self.handler._WikiItem)
+
+                # build simple xml for db storage
+                for item in ppitem:
+                    self.buildXml(item)
 
                 # destroy _WikiItem
                 self.handler._WikiItem = None
+
+
         self.log.info(
             'Found %s relevant Articles in %s pages', 
             count, 
             self.handler._pageCount)
+
+    def buildXml(self, ppitem):
+
+        if ppitem:
+            # build outXml
+            tree = self.xf.spawnBuilder()
+            tree.build(
+                ppitem.field['title'],
+                ppitem.field['phonetic'],
+                ppitem.field['meaning'],
+                ppitem.field['etymology'],
+                ppitem.field['transl']
+                )
+            # root = tree.returnRoot()
+            outStr = tree.returnOutstr()
+            print(outStr)
+            # self.log.info(prettifyXml(out))
+            tree.clearBody()
+        return
 
     def processItem(self, witem):
         
@@ -116,20 +149,20 @@ class Controller:
         pp.findMeaning()
         pp.findTranslations()
 
-        # display findings
+        # out
         if pp.witem:
 
-            # self.log.debug(pp.witem.field['phonetic'])
-            # self.log.debug(pp.witem.field['etymology'])
-            # self.log.debug(pp.witem.field['meaning'])
+            yield pp.witem
+            # display findings
+            self.log.debug(pp.witem.field['phonetic'])
+            self.log.debug(pp.witem.field['etymology'])
+            self.log.debug(pp.witem.field['meaning'])
             self.log.debug(pp.witem.field['transl'])
-
-            # if str(pp.witem) == 'cat':
-            #     self.log.debug(pp.witem.text)
+            # if str(pp.witem) == 'Hallo':
+            #     self.log.info(pp.witem.text)
             # else:
             #     pass
             
-        
         # cleanup
         pp = None
         self.pf.destroyProcessor()
@@ -144,9 +177,10 @@ class Controller:
 def main():
 
     c = Controller()
-    c.initializeHandler(c.wikiData[1])
+    c.initializeHandler(c.wikiData[3])
     c.initializeProcessorFactory()
-    c.startFeed(limit=100)
+    c.initializeXmlFactory()
+    c.startFeed(limit=1)
 
 main()
 
